@@ -4,7 +4,7 @@ import { generateProofForHash,generateProofForIndex } from "./generateProof.mjs"
 import { verifyProof } from "./verifyProof.mjs";
 
 export default class HashTree{
-    static maxLevelDepth = 64;
+    static maxLevelDepth = 128;
 
     constructor(hasher,depth,zeroVal,arity,leaves){
 
@@ -160,10 +160,16 @@ export default class HashTree{
 
 
 
-const htree = new HashTree(hashFunction,2,hashFunction(["0"]),2,["1","2","3"]);
-htree.insertHashAtIndex(hashFunction(["4"]),3);
+const htree = new HashTree(hashFunction,128,hashFunction([0]),2,[1,2,3]);
+htree.insertHashAtIndex(hashFunction([4]),3);
+htree.insertHashAtIndex(hashFunction([5]),4);
+htree.insertHashAtIndex(hashFunction([6]),5);
+htree.insertHashAtIndex(hashFunction([7]),6);
+htree.insertHashAtIndex(hashFunction([8]),7);
 
-const proof = generateProofForHash(htree,hashFunction(["4"]));
+const proof = generateProofForHash(htree,hashFunction(["7"]));
+console.log(htree);
+console.log(proof);
 
 console.log(verifyProof(proof));
 
