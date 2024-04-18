@@ -33,4 +33,4 @@ const generateHashFunction = async () =>{
 
 let hashFunction = (await generateHashFunction());
 
-export {hashFunction};
+export {hashFunction,getCharCodes};
