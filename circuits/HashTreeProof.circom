@@ -29,7 +29,7 @@ template HashTreeProof(depth){
 
 }
 
-component main = HashTreeProof(128);
+component main {public [root]} = HashTreeProof(32);
 
 /* INPUT = {
     "sk":"7",
