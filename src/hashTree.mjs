@@ -4,7 +4,7 @@ import { generateProofForHash,generateProofForIndex } from "./generateProof.mjs"
 import { verifyProof } from "./verifyProof.mjs";
 
 class HashTree{
-    static maxLevelDepth = 128;
+    static maxLevelDepth = 256;
 
     constructor(hasher,depth,zeroVal,arity,leaves){
 
@@ -36,10 +36,7 @@ class HashTree{
 
         //init the leaves if any are present
         if(leaves.length>0){
-            //hash the leaves
-            for (let i = 0;i<leaves.length;i++){
-                leaves[i] = this.hasher([leaves[i]]);
-            }
+            
             //first level 
             this.nodes[0] = leaves;
             //compute the rest of the levels
