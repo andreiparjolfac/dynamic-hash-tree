@@ -157,6 +157,6 @@ nullTree.insertHashValue("10");
 nullTree.insertHashValue("20");
 nullTree.insertHashValue("50");
 nullTree.insertHashValue("15");
-nullTree.insertHashValue("15");
+
 console.log(nullTree.leavesList);
 console.log(nullTree.nodes[0]);

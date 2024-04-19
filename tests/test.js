@@ -4,6 +4,7 @@ import { hashFunction ,getCharCodes} from "../src/hashFunction.mjs";
 
 import * as snarkjs from "snarkjs";
 import fs from "fs";
+import { verifyProof } from "../src/verifyProof.mjs";
 
 
 const main = async() => {
@@ -15,8 +16,9 @@ const main = async() => {
     htree.insertHashAtIndex(hashFunction(["raspberries"]),12001);
     const rawProof = generateProofForHash(htree,hashFunction(["raspberries"]));
 
+ 
     const inputs = {
-        sk:getCharCodes("avocado"),
+        sk:getCharCodes("raspberries"),
         siblingsPk:rawProof.siblings.flat(),
         path:rawProof.path,
         root:htree.getRoot()
