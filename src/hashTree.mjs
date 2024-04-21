@@ -1,12 +1,9 @@
 
-import { hashFunction } from "./hashFunction.mjs";
-import { generateProofForHash,generateProofForIndex } from "./generateProof.mjs";
-import { verifyProof } from "./verifyProof.mjs";
 
 class HashTree{
     static maxLevelDepth = 256;
 
-    constructor(hasher,depth,zeroVal,arity,leaves){
+    constructor(hasher,depth,zeroVal,arity,leaves,treeID=0){
 
         //check the max depth of the tree
         if(depth<1 || depth > HashTree.maxLevelDepth)
@@ -22,6 +19,7 @@ class HashTree{
         this.zeros = [];
         this.nodes = Array(depth);
         this.arity = arity;
+        this.treeID = treeID;
 
         //generate zero values for each level of depth
         //respect the hash tree hashing rule
@@ -74,6 +72,10 @@ class HashTree{
     //get all the leaves of the tree
     getLeaves(){
         return this.nodes[0].slice();
+    }
+    //get the tree ID 
+    getTreeID(){
+        return this.treeID;
     }
     //get all the zeros for each level
     getZeros(){
