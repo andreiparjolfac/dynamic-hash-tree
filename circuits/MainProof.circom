@@ -1,173 +1,9 @@
 pragma circom 2.1.6;
 
-include "circomlib/poseidon.circom";
+include "../node_modules/circomlib/circuits/poseidon.circom";
+include "./HashTreeLevel.circom";
+include "./LessThan_256BIT_MSBR.circom";
 
-template Selector(){
-    signal input switcher;
-    signal input in[2];
-    signal int[4];
-    signal output out[2];
-    0 === (switcher)*(1-switcher);
-    int[0] <== in[0]*(1-switcher);
-    int[1] <== in[1]*switcher;
-    out[0] <== int[0] + int[1];
-
-    int[2] <== in[1]*(1-switcher);
-    int[3] <== in[0]*switcher;
-    out[1] <== int[2] + int[3];
-
-}
-
-template HashTreeLevel(){
-    signal input in[2];
-    signal input position;
-    signal output out;
-
-    component poseidon = Poseidon(2);
-    component selector = Selector();
-
-    selector.in[0] <== in[0];
-    selector.in[1] <== in[1];
-    selector.switcher <== position;
-
-    selector.out[0] ==> poseidon.inputs[0];
-    selector.out[1] ==> poseidon.inputs[1];
-
-    poseidon.out ==> out;
-
-}
-
-
-
-template HashTreeProof(depth){
-    signal input sk;
-    signal input siblingsPk[depth];
-    signal input path[depth];
-    signal input root;
-
-    signal intermed[depth+1];
-
-    component levelChecker[depth];
-    component poseidon = Poseidon(1);
-    poseidon.inputs[0] <== sk;
-    poseidon.out ==> intermed[0];
-
-    for(var i=0;i<depth;i++){
-        levelChecker[i] = HashTreeLevel();
-        levelChecker[i].in[0] <== intermed[i];
-        levelChecker[i].in[1] <== siblingsPk[i];
-        levelChecker[i].position <== path[i];
-        levelChecker[i].out ==> intermed[i+1];
-    }
-
-    intermed[depth] === root;
-
-}
-
-template Num2Bits(n){
-    signal input in;
-    signal output out[n];
-
-    var value = 0;
-    var pow = 1;
-    for(var i=0;i<n;i++){
-        out[i] <-- (in>>i)&1;
-        out[i]*(1-out[i]) === 0;
-        value += out[i]*pow;
-        pow += pow;
-    }
-
-    value === in;
-
-}
-
-template Bits2Num(n){
-    signal input in[n];
-    signal output out;
-
-    var value = 0;
-    var pow = 1;
-    for(var i=0;i<n;i++){
-        in[i]*(1-in[i]) === 0;
-        value += pow*in[i];
-        pow +=pow;
-    }
-    out <== value;
-}
-
-template LessThan(){
-    signal input in[2];
-    signal output out;
-
-    component n2b = Num2Bits(253);
-
-    n2b.in <== in[0]+(1<<252)-in[1];
-    out <== 1-n2b.out[252];
-}
-
-template LessThan_256BIT_MSBR(){
-    signal input in[2];
-    signal inter1[4];
-    signal inter2[4];
-    signal output out;
-    component n2b = Num2Bits(256);
-    component b2n[4] ;
-    n2b.in <== in[0];
-    for(var i=0;i<4;i++){
-        b2n[i] = Bits2Num(64);
-        for(var j=0;j<64;j++){
-            b2n[i].in[j]<==n2b.out[j+(64*i)];
-        }
-        inter1[i]<==b2n[i].out;
-    }
-
-    component n2b_2 = Num2Bits(256);
-    component b2n_2[4] ;
-    n2b_2.in <== in[1];
-    for(var i=0;i<4;i++){
-        b2n_2[i] = Bits2Num(64);
-        for(var j=0;j<64;j++){
-            b2n_2[i].in[j]<==n2b_2.out[j+(64*i)];
-        }
-        inter2[i]<==b2n_2[i].out;
-    }
-
-
-
-    signal interBINcomp1[4];
-    signal interBINcomp2[4];
-    component interLT[4];
-
-    for(var i=0;i<4;i++){
-        interLT[i] = LessThan();
-        interLT[i].in[0]<==inter2[i];
-        interLT[i].in[1]<==inter1[i];
-        interBINcomp1[i]<== interLT[i].out;
-        interBINcomp2[i]<== (1-interLT[i].out);
-    }
-
-    signal num[2];
-    component b2n_f[2];
-    b2n_f[0]=Bits2Num(4);
-    b2n_f[0].in[0]<== interBINcomp1[0];
-    b2n_f[0].in[1]<== interBINcomp1[1];
-    b2n_f[0].in[2]<== interBINcomp1[2];
-    b2n_f[0].in[3]<== interBINcomp1[3];
-    b2n_f[1]=Bits2Num(4);
-    b2n_f[1].in[0]<== interBINcomp2[0];
-    b2n_f[1].in[1]<== interBINcomp2[1];
-    b2n_f[1].in[2]<== interBINcomp2[2];
-    b2n_f[1].in[3]<== interBINcomp2[3];
-
-    num[0]<== b2n_f[0].out;
-    num[1]<== b2n_f[1].out;
-
-    component LTF = LessThan();
-    LTF.in[0]<==num[0];
-    LTF.in[1]<==num[1];
-    out<==LTF.out;
-
-}
 
 template MainProof(depth){
     signal input sk;
@@ -222,6 +58,34 @@ template MainProof(depth){
     LT256[0].in[1]<==nullifierHash;
     LT256[0].out === 1;
 
+    LT256[1] = LessThan_256BIT_MSBR();
+    LT256[1].in[0]<==nullifierHash;
+    LT256[1].in[1]<==highHash;
+    LT256[1].out === 1;
+
+    //proof that the 3 items lowhash,next index and highhash , hash into the leaf node of the nullfier
+    component poseidonLowLeafHashValue = Poseidon(3);
+    poseidonLowLeafHashValue.inputs[0] <== lowHash;
+    poseidonLowLeafHashValue.inputs[1] <== nextIndex;
+    poseidonLowLeafHashValue.inputs[2] <== highHash;
+    poseidonLowLeafHashValue.out === lowLeafHashValue;
+
+    //proof of membership for the lowLeafHashValue == proof of non - membership for the nullifier
+    signal intermedNULL[depth+1];
+
+    component levelCheckerNullifier[depth];
+    lowLeafHashValue ==> intermedNULL[0];
+
+    for(var i=0;i<depth;i++){
+        levelCheckerNullifier[i] = HashTreeLevel();
+        levelCheckerNullifier[i].in[0] <== intermedNULL[i];
+        levelCheckerNullifier[i].in[1] <== nullifierTreeSiblingsPk[i];
+        levelCheckerNullifier[i].position <== nullifierTreePath[i];
+        levelCheckerNullifier[i].out ==> intermedNULL[i+1];
+    }
+
+    intermedNULL[depth] === nullifierRoot;
+
 
     
 }
@@ -256,7 +120,7 @@ component main {public [root,nullifierRoot,nodeTreeID,nullifierTreeID]}  = MainP
   "nullifierHash": "5872559138500314488803001855265510459552834833845790454912528871492206154256",
   "lowLeafHashValue": "6395821338028259029208767179980913543707389139742838493308062280558000815587",
   "lowHash": "0",
-  "highHash": 21888242871839275222246405745257275088548364400416034343698204186575808495616,
+  "highHash": "21888242871839275222246405745257275088548364400416034343698204186575808495616",
   "nextIndex": 1,
   "nullifierTreeSiblingsPk": [
     "19995003932431518142420037639546124879958109781376591867897177037222171918880",
