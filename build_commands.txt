@@ -1,31 +1,29 @@
 1.) Compile the circuits
 
-PS C:\Users\Andrei\Desktop\dynamic-hash-tree\circuits> circom HashTreeProof.circom --wasm --r1cs --sym -o ./build
-
-template instances: 143
-non-linear constraints: 8053
+PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> circom MainProof.circom --wasm --r1cs --sym -o ./build
+template instances: 218
+non-linear constraints: 13167
 linear constraints: 0
-public inputs: 1     
-private inputs: 65
+public inputs: 4
+private inputs: 70
 public outputs: 0
-wires: 8087
-labels: 25640
-Written successfully: ./build\HashTreeProof.r1cs
-Written successfully: ./build\HashTreeProof.sym
-Written successfully: ./build\HashTreeProof_js\HashTreeProof.wasm
+wires: 12152
+labels: 32217
+Written successfully: ./build\MainProof.r1cs
+Written successfully: ./build\MainProof.sym
+Written successfully: ./build\MainProof_js\MainProof.wasm
 Everything went okay
 
 2.) Check the numbers of constraints . 
 
-PS C:\Users\Andrei\Desktop\dynamic-hash-tree\circuits>  snarkjs r1cs info build/HashTreeProof.r1cs
-
+PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> snarkjs r1cs info build/MainProof.r1cs
 [INFO]  snarkJS: Curve: bn-128
-[INFO]  snarkJS: # of Wires: 8087
-[INFO]  snarkJS: # of Constraints: 8053
-[INFO]  snarkJS: # of Private Inputs: 65
-[INFO]  snarkJS: # of Public Inputs: 1
-[INFO]  snarkJS: # of Labels: 25640
-[INFO]  snarkJS: # of Outputs: 0
+[INFO]  snarkJS: # of Wires: 12152      
+[INFO]  snarkJS: # of Constraints: 13167
+[INFO]  snarkJS: # of Private Inputs: 70
+[INFO]  snarkJS: # of Public Inputs: 4  
+[INFO]  snarkJS: # of Labels: 32217     
+[INFO]  snarkJS: # of Outputs: 0    
 
 3.) Download powersOfTau file for the trusted setup according to the number of constraints
 from :
@@ -34,16 +32,14 @@ place it in the ptau folder
 
 4.) Generate the Proving key using the ptau file and r1cs 
 
-PS C:\Users\Andrei\Desktop\dynamic-hash-tree\circuits> snarkjs plonk setup build/HashTreeProof.r1cs ptau/powersOfTau28_hez_final_17.ptau keys/HashTreeProof_PK.zkey
-
+PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> snarkjs plonk setup build/MainProof.r1cs ptau/powersOfTau28_hez_final_17.ptau keys/MainProof_PK.zkey
 [INFO]  snarkJS: Reading r1cs
-[INFO]  snarkJS: Plonk constraints: 81271
+[INFO]  snarkJS: Plonk constraints: 100578
 [INFO]  snarkJS: Setup Finished
 
 5.) Generate the Verification key using the Proving key
 
-PS C:\Users\Andrei\Desktop\dynamic-hash-tree\circuits> snarkjs zkey export verificationkey keys/HashTreeProof_PK.zkey keys/HashTreeProof_VK.json
-
+PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> snarkjs zkey export verificationkey keys/MainProof_PK.zkey keys/MainProof_VK.json
 [INFO]  snarkJS: EXPORT VERIFICATION KEY STARTED
 [INFO]  snarkJS: > Detected protocol: plonk
 [INFO]  snarkJS: EXPORT VERIFICATION KEY FINISHED

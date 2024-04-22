@@ -34,7 +34,8 @@ const main = async() => {
     console.log(`Generated nullifier for node tree ${htree.getTreeID()} and nullifier tree ${nullTree.getTreeID()} \n Nullifier value : ${nullifier}`);
     console.log("------------------")
     console.log(`Verifying the nullifier : ${checkNullifier(nullifier,secret_key,htree.getTreeID(),nullTree.getTreeID())}`);
-
+    //this shoul throw an error since we already have a nullifier in the tree
+    //nullTree.insertHashValue(nullifier);
     const nullifierTreeRawProof = generateNullifierTreeProofForHash(nullTree,nullifier);
 
     console.log(`Verified Proof of non-membership generated for nullifier Tree : ${verifyProof(nullifierTreeRawProof)}`);
@@ -61,14 +62,23 @@ const main = async() => {
         nullifierTreeID:nullTree.getTreeID()
     };
     console.log(inputs);
-    // const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,"../circuits/build/HashTreeProof_js/HashTreeProof.wasm","../circuits/keys/HashTreeProof_PK.zkey");
+    console.log("Starting ZK Proof Generation");
+    var start = new Date().getTime();
+    const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,"../circuits/build/MainProof_js/MainProof.wasm","../circuits/keys/MainProof_PK.zkey");
+    var time_now = new Date().getTime();
+    console.log(`Proof and public signals generated in ${time_now-start} mseconds`);
+    const vKey = JSON.parse(fs.readFileSync("../circuits/keys/MainProof_VK.json"));
 
-    // const vKey = JSON.parse(fs.readFileSync("../circuits/keys/HashTreeProof_VK.json"));
+    const res = await snarkjs.plonk.verify(vKey,publicSignals,proof);
+    console.log("Proof result: ");
+    console.log(res);
+    var end = new Date().getTime();
+    console.log(`Proof time for 2**16 depth node tree and nullifier tree : ${end-time_now} mseconds`);
 
-    // const res = await snarkjs.plonk.verify(vKey,publicSignals,proof);
-
-    // console.log(res);
-
+    //insert the nullifier to prevent a replay attack
+    if(res){
+        nullTree.insertHashValue(nullifier);
+    }
     
 }
 
