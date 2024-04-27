@@ -36,7 +36,7 @@ Pentru a arăta relevanța ideilor prezentate în această lucrare am scris o li
 
 	A fost fost propusă astfel implementarea unui nou sistem , zero knowledge , în care se demonstrează cunoașterea unei soluții la o problemă în loc de soluție în sine . După terminarea demonstrației Verificatorul nu învață nimic nou în afara faptului că Demonstratorul cunoaște soluția.\cite{greenandblazewebsite}
 
- \subsection{Definiție formală}
+ \subsection{Zero Knowledge}
  
  Dat fiind un sistem de demonstrație (P,V) și un Limbaj L (astfel încât $x\in L$ să fie echivalent cu x este adevărat ), acest sistem este zero knowledge dacă satisface următoarele trei proprietăți: 
 
@@ -48,6 +48,57 @@ Pentru a arăta relevanța ideilor prezentate în această lucrare am scris o li
 
 
 \textbf{Zero Knowledge} : Pentru orice verificator V exista o simulare S astfel încât orice rezultat final sau intermediar obținut de V se poate obține și de către S. Informal V nu poate să calculeze nimic din ce nu putea să calculeze înainte de verificarea demonstrației.
+
+\subsection{zk SNARKs}
+Este un obiect criptografic care poate să genereze într-un mod eficient un protocol zero knowledge pentru orice problemă sau funcție. 
+
+zk SNARKs au următoarele proprietăți:
+\begin{itemize}
+\item {\textbf{zk} : intrările funcțiilor rămân ascunse} 
+\item{\textbf{Succint} : demonstrațiile generate sunt scurte și pot fi verificate rapid.}
+\item{\textbf{Noninteractive} : nu este necesară comunicarea prin întrebări și răspunsuri dintre Demonstrator și Verificator.}
+\item{\textbf{ARgument of Knowledge} : se demonstrează cunoașterea unei intrări x pentru o funcție și un rezultat dat.}
+\end{itemize}
+Ideea de bază:
+Se transformă problema (ex: logaritm discret , colorarea grafului etc.) într-o funcție a cărei intrări vrem să le ascundem.
+Executăm funcția folosind criptarea homeomorfă și funcția este apoi trecută printr-un procedeu numit “roll up” în care se obține o semnătură scurtă care indică execuția corectă a funcției.
+
+\pagebreak
+\section{Acumulatori criptografici}
+Un acumulator criptografic este o reprezentare compactă a unei mulțimi de elemente sub forma unui hash. 
+
+Această reprezentare permite generarea de demonstrații de apartenență scurte, notate $w_x$ și numite witness(martor),pentru orice element $x$ care a fost acumulat sau demonstrații de non-apartenență pentru orice element din domeniu care nu a fost acumulat.
+
+Un \emph{Verifier} poate sa verifice în mod eficient demonstrația deoarece acesta nu trebuie să acceseze întreaga mulțime.
+
+Acumulatorii care suportă doar demonstrații de apartenență sunt numiți \emph{pozitivi}, cei care suportă doar demonstrații de non-apartenență sunt numiți \emph{negativi} iar cei care suportă ambele tipuri de demonstrații sunt numiți \emph{universali}.
+
+O altă clasificare pentru acumulatori este dată de metodele de actualizare pe care aceștia le suportă, astfel avem acumulatori:
+\begin{itemize}
+    \item{\textbf{aditivi} - suportă doar introducerea de elemente noi în mulțime}
+    \item{\textbf{substractivi} - suportă doar eliminarea de elemente din mulțime}
+    \item{\textbf{dinamici} - suportă ambele operații descrise mai sus}
+\end{itemize}
+
+Dacă avem o entitate(trusted party) responsabilă pentru actualizarea acumulatorului acesta se numește \emph{trapdoor-based} altfel acesta se numește \emph{trapdoorless}.
+
+Pentru acumulatorii \emph{trapdoor-based}, entitatea responsabilă pentru actualizarea mulțimii suport se numește \emph{managerul acumulatorului}. Acesta deține o cheie secretă (\emph{trapdoor}) și este capabil să adauge , să șteargă elemente și să genereze demonstrații într-un mod eficient.
+
+Acumulatorii \emph{trapdoorless} permit actualizări publice asupra mulțimii suport, fără a mai fi nevoie de o parte terță de încredere. Astfel utilizatorii sunt responsabili pentru actualizarea și generarea de demonstrații.
+
+
+Acumulatori au numeroase aplicații,cele mai populare fiind : anonymous credentials , group signatures, stocarea datelor in cloud și anonimizarea tranzacțiilor cu criptomonede.
+\cite{cryptoeprint:2023/1001}
+
+Din definiția dată mai sus acumulatorii criptografici nu au nicio propietate care să păstreze datele private. O parte malițiosă poate să afle pentru ce element din mulțime s-a făcut o demonstrație sau poate să afle ce element a fost șters sau adăugat în acumulator. Aceste informații pot fi folosite pentru a falsifica demonstrații și pentru a actualiza abuziv mulțimea/acumulatorul.
+
+În practică acumulatorii sunt folosiți în zone în care datele trebuie să rămână private așa că demonstrațiile convenționale sunt înlocuite cu demonstrațiile \emph{zero-knowledge}. Odată cu schimbarea tipului de demonstrație folosit apar și probleme noi pe care le vom discuta și rezolva în continuare : \emph{replay attacks} - folosirea repetată a aceleiași demonstrații, timpi de lucru mari pentru generarea demonstrațiilor și probleme de concurență atunci cand doi sau mai mulți utilizatori încearcă să actualizeze același acumulator.
+
+\subsection{Arbori hash Merkle}
+
+aici o sa scriu chestii despre arborii hash merkle
+
+
 
 \printbibliography
 \end{document}
