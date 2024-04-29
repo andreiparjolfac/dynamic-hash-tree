@@ -6,7 +6,7 @@ style=alphabetic,
 sorting=ynt
 ]{biblatex}
 \addbibresource{bibliografie.bib}
-
+\graphicspath{{images/}}
 \title{Demonstrații zero-knowledge de apartenență la mulțimi}
 \author{Andrei Pârjol}
 \date{April 2024}
@@ -69,8 +69,6 @@ Un acumulator criptografic este o reprezentare compactă a unei mulțimi de elem
 
 Această reprezentare permite generarea de demonstrații de apartenență scurte, notate $w_x$ și numite witness(martor),pentru orice element $x$ care a fost acumulat sau demonstrații de non-apartenență pentru orice element din domeniu care nu a fost acumulat.
 
-Un \emph{Verifier} poate sa verifice în mod eficient demonstrația deoarece acesta nu trebuie să acceseze întreaga mulțime.
-
 Acumulatorii care suportă doar demonstrații de apartenență sunt numiți \emph{pozitivi}, cei care suportă doar demonstrații de non-apartenență sunt numiți \emph{negativi} iar cei care suportă ambele tipuri de demonstrații sunt numiți \emph{universali}.
 
 O altă clasificare pentru acumulatori este dată de metodele de actualizare pe care aceștia le suportă, astfel avem acumulatori:
@@ -87,17 +85,55 @@ Pentru acumulatorii \emph{trapdoor-based}, entitatea responsabilă pentru actual
 Acumulatorii \emph{trapdoorless} permit actualizări publice asupra mulțimii suport, fără a mai fi nevoie de o parte terță de încredere. Astfel utilizatorii sunt responsabili pentru actualizarea și generarea de demonstrații.
 
 
-Acumulatori au numeroase aplicații,cele mai populare fiind : anonymous credentials , group signatures, stocarea datelor in cloud și anonimizarea tranzacțiilor cu criptomonede.
+Acumulatorii criptografici au numeroase aplicații,cele mai populare fiind : anonymous credentials , group signatures, stocarea datelor in cloud și anonimizarea tranzacțiilor cu criptomonede.
 \cite{cryptoeprint:2023/1001}
+
+\subsection{Date private și scalabilitate}
 
 Din definiția dată mai sus acumulatorii criptografici nu au nicio propietate care să păstreze datele private. O parte malițiosă poate să afle pentru ce element din mulțime s-a făcut o demonstrație sau poate să afle ce element a fost șters sau adăugat în acumulator. Aceste informații pot fi folosite pentru a falsifica demonstrații și pentru a actualiza abuziv mulțimea/acumulatorul.
 
-În practică acumulatorii sunt folosiți în zone în care datele trebuie să rămână private așa că demonstrațiile convenționale sunt înlocuite cu demonstrațiile \emph{zero-knowledge}. Odată cu schimbarea tipului de demonstrație folosit apar și probleme noi pe care le vom discuta și rezolva în continuare : \emph{replay attacks} - folosirea repetată a aceleiași demonstrații, timpi de lucru mari pentru generarea demonstrațiilor și probleme de concurență atunci cand doi sau mai mulți utilizatori încearcă să actualizeze același acumulator.
+În practică acumulatorii sunt folosiți în zone în care datele trebuie să rămână private așa că demonstrațiile convenționale sunt înlocuite cu demonstrațiile \emph{zero-knowledge}. Odată cu schimbarea tipului de demonstrație folosit apar și probleme noi pe care le vom discuta și rezolva în continuare : \emph{replay attacks} - folosirea repetată a aceleiași demonstrații, timpi de lucru mari pentru generarea demonstrațiilor și probleme de concurență atunci cand doi sau mai mulți utilizatori încearcă să actualizeze același acumulator în același timp.
+
+Dorim totodată ca acumulatorul să fie scalabil și să ne permită să verificăm apartenența $x \in S$ într-un timp subliniar, fără să reținem toate elementele din $S$.
+
+Pentru a realiza cele două obiective trebuie să definim părțile care participă în procesul de demonstrare : 
+\begin{itemize}
+    \item{\textbf{Prover} - cunoaște valoarea secretă $x$ și mulțimea $S$ și are spațiu de memorie și putere de calcul nelimitate. Acesta este responsabil de generarea demonstrației de apartenență.}
+    \item{\textbf{Verifier} - nu cunoaște valoarea secretă $x$ sau mulțimea $S$ și deține spațiu de memorie și putere de calcul limitate. Acesta este responsabil de verificarea demonstrației de apartenență.  }
+\end{itemize}
+
+Împărțind problema celor două roluri putem să păstrăm datele private și să obținem scalabilitate.
+
+\subsection{Verificarea eficientă a demonstrațiilor}
+
+Formal un acumulator poate fi descris printr-un triplet de 3 algoritmi : $(Acc,Prove,Verify)$ care au următoarele funcționalități:
+\begin{itemize}
+    \item{ \textbf{$A \leftarrow Acc(S)$} - realizează compresia mulțimii $S$ într-o valoare scurtă notată cu A.}
+    \item{ \textbf{ $\pi_x \leftarrow Prove(S,x)$} - generează demonstrația de apartenență la mulțimea $S$ pentru elementul $x$.}
+    \item{ \textbf{ $\{0,1\} \leftarrow Verify(A,x,\pi_x)$} - acceptă sau respinge demonstrația $\pi_x$ folosind doar valoarea comprimată $A$.}
+\end{itemize}
+
+Pentru a fi considerate eficiente, dimensiunea acumulatorului $A$ , a demon-
+strației $\pi_x$ și complexitatea timp a algoritmului $Verify$ trebuie să fie mai mici decât $|S|$. În continuare sunt prezentați arborii hash Merkle în care algoritmul $Verify$ are o complexitate timp $O(log(|S|))$. 
 
 \subsection{Arbori hash Merkle}
+Arborii hash Merkle sunt arbori binari în care valoarea fiecărui nod este dată de o funcție hash criptografică care primește ca și intrări valorile copiilor nodului, sau dacă nodul este nod frunză primește cheile secrete din mulțimea suport. 
 
-aici o sa scriu chestii despre arborii hash merkle
+Funcția hash folosită intr-un arbore Merkle este importantă deoarece în contextul zero-knowledge dorim o funcție care sa fie ușor de scris sub-forma unui circuit algebric pentru a genera un SNARK cât mai eficient și cu cât mai puține constrângeri. Astfel de funcții hash sunt numite și \emph{"zk-friendly"}, iar câteva funcții folosite în practică sunt  : Poseidon \cite{cryptoeprint:2019/458} , MiMC \cite{cryptoeprint:2016/492} , Vision Mark-32 \cite{cryptoeprint:2024/633} sau Rescue \cite{cryptoeprint:2022/1577}. În implementarea prezentată în această lucrare vom folosi funcția hash Poseidon , prescurtată cu POS.
 
+În figura de mai jos este prezentat un arbore hash de adâncime 3 în care am acumulat cheile secrete $S=\{A,B, \dots ,F\}$. Nodurile frunză conțin doar hash-urile $\{POS(A),POS(B), \dots ,POS(F)\}$, iar nodurile care nu au o valoare setată primesc o valoare \emph{null} notată cu \emph{zeroVal} sau \emph{0}. 
+
+Folosirea unei valori \emph{null} prestabilită ne permite să implementăm într-un mod eficient arbori Merkle \emph{sparse} care au o adancime foarte mare însă puține elemente deoarece putem să calculăm valorile null pentru fiecare nivel de adâncime.
+
+Arborii Merkle au o proprietate adițională față de alți acumulatori criptografici deoarece realizează un \emph{"vector commitment"} : rădăcina arborelui codifică nu numai conținutul mulțimii dar și ordinea în care elementele apar în mulțime/vector și astfel este imposibil pentru un Prover să demonstreze două valori diferite la aceiași poziție. 
+
+\pagebreak
+\begin{figure}[h]
+\centering
+\includegraphics[width=1\textwidth]{hashtree.png}
+\caption{Arbore Merkle sparse de adâncime 3 }
+\label{fig:arbore_hash1}
+\end{figure}
 
 
 \printbibliography
