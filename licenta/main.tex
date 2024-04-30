@@ -108,24 +108,24 @@ Pentru a realiza cele două obiective trebuie să definim părțile care partici
 
 Formal un acumulator poate fi descris printr-un triplet de 3 algoritmi : $(Acc,Prove,Verify)$ care au următoarele funcționalități:
 \begin{itemize}
-    \item{ \textbf{$A \leftarrow Acc(S)$} - realizează compresia mulțimii $S$ într-o valoare scurtă notată cu A.}
-    \item{ \textbf{ $\pi_x \leftarrow Prove(S,x)$} - generează demonstrația de apartenență la mulțimea $S$ pentru elementul $x$.}
-    \item{ \textbf{ $\{0,1\} \leftarrow Verify(A,x,\pi_x)$} - acceptă sau respinge demonstrația $\pi_x$ folosind doar valoarea comprimată $A$.}
+    \item{\textbf{$A \leftarrow Acc(S)$} - realizează compresia mulțimii $S$ într-o valoare scurtă notată cu A.}
+    \item{\textbf{ $\pi_x \leftarrow Prove(x,S)$} - generează demonstrația de apartenență la mulțimea $S$ pentru elementul $x$.}
+    \item{\textbf{ $\{0,1\} \leftarrow Verify(A,x,\pi_x)$} - acceptă sau respinge demonstrația $\pi_x$ folosind doar valoarea comprimată $A$.}
 \end{itemize}
 
 Pentru a fi considerate eficiente, dimensiunea acumulatorului $A$ , a demon-
 strației $\pi_x$ și complexitatea timp a algoritmului $Verify$ trebuie să fie mai mici decât $|S|$. În continuare sunt prezentați arborii hash Merkle în care algoritmul $Verify$ are o complexitate timp $O(log(|S|))$. 
 
-\subsection{Arbori hash Merkle}
+\subsection{Arbori hash Merkle - $Acc(S)$}
 Arborii hash Merkle sunt arbori binari în care valoarea fiecărui nod este dată de o funcție hash criptografică care primește ca și intrări valorile copiilor nodului, sau dacă nodul este nod frunză primește cheile secrete din mulțimea suport. 
 
 Funcția hash folosită intr-un arbore Merkle este importantă deoarece în contextul zero-knowledge dorim o funcție care sa fie ușor de scris sub-forma unui circuit algebric pentru a genera un SNARK cât mai eficient și cu cât mai puține constrângeri. Astfel de funcții hash sunt numite și \emph{"zk-friendly"}, iar câteva funcții folosite în practică sunt  : Poseidon \cite{cryptoeprint:2019/458} , MiMC \cite{cryptoeprint:2016/492} , Vision Mark-32 \cite{cryptoeprint:2024/633} sau Rescue \cite{cryptoeprint:2022/1577}. În implementarea prezentată în această lucrare vom folosi funcția hash Poseidon , prescurtată cu POS.
 
-În figura de mai jos este prezentat un arbore hash de adâncime 3 în care am acumulat cheile secrete $S=\{A,B, \dots ,F\}$. Nodurile frunză conțin doar hash-urile $\{POS(A),POS(B), \dots ,POS(F)\}$, iar nodurile care nu au o valoare setată primesc o valoare \emph{null} notată cu \emph{zeroVal} sau \emph{0}. 
+În Figura \ref{fig:arbore_hash1} de mai jos este prezentat un arbore hash de adâncime 3 în care am acumulat cheile secrete $S=\{A,B, \dots ,F\}$. Nodurile frunză conțin doar hash-urile $\{POS(A),POS(B), \dots ,POS(F)\}$, iar nodurile care nu au o valoare setată primesc o valoare \emph{null} notată cu \emph{zeroVal} sau \emph{0}. 
 
 Folosirea unei valori \emph{null} prestabilită ne permite să implementăm într-un mod eficient arbori Merkle \emph{sparse} care au o adancime foarte mare însă puține elemente deoarece putem să calculăm valorile null pentru fiecare nivel de adâncime.
 
-Arborii Merkle au o proprietate adițională față de alți acumulatori criptografici deoarece realizează un \emph{"vector commitment"} : rădăcina arborelui codifică nu numai conținutul mulțimii dar și ordinea în care elementele apar în mulțime/vector și astfel este imposibil pentru un Prover să demonstreze două valori diferite la aceiași poziție. 
+Arborii Merkle au o proprietate adițională care îi face mai puternici decât alți acumulatori criptografici deoarece realizează un \emph{"vector commitment"} : rădăcina arborelui codifică nu numai conținutul mulțimii dar și ordinea în care elementele apar în mulțime/vector și astfel este imposibil pentru un Prover să demonstreze două valori diferite la aceiași poziție. 
 
 \pagebreak
 \begin{figure}[h]
@@ -134,6 +134,30 @@ Arborii Merkle au o proprietate adițională față de alți acumulatori criptog
 \caption{Arbore Merkle sparse de adâncime 3 }
 \label{fig:arbore_hash1}
 \end{figure}
+
+\subsection{Demonstrații de apartenență - $Prove(x,S)$}
+
+O demonstrație de apartenență în contextul arborilor Merkle presupune  parcurgerea corectă a drumului de la nodul frunză cu valorea $POS(x)$ pentru care se face demonstrația până la rădăcina arborelui.
+
+Funcția $Prove(x,S)$ generează vectorii de lungime $\lfloor log(|S|) \rfloor$ : \emph{siblings} - vectorul cu fiecare nod frate din fiecare nivel și \emph{path} - vectorul care codifică poziția nodului curent în funcția hash pentru a calcula nodul următor. În implementare folosim 0 pentru stânga și 1 pentru dreapta. Pe lângă cei doi vectori care atestă că elementul face parte din mulțimea $S$ la poziția indicată , un Prover mai trebuie să demonstreze și faptul că știe preimaginea valorii $POS(x)$ prin funcția hash aleasă , printr-o semnatură a unui mesaj sau un circuit zk-SNARK simplu.
+
+În Figura \ref{fig:demonstrație_arbore_hash} de mai jos sunt colorate cu verde toate nodurile care fac parte din vectorul $siblings_C$ pentru demonstrația de apartenență a elementului $C$.
+
+\pagebreak
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{hashtreeProof.png}
+    \caption{Demonstrație pentru nodul cu cheia secretă $C$}
+    \label{fig:demonstrație_arbore_hash}
+\end{figure}
+
+În acest exemplu , $Prove(x,S)$ generează vectorii $siblings_C= [ D',AB',00FG' ],$
+$path_C=[0,1,0]$ împreună cu preimaginea C sau o semnatură/demonsrație zk pentru cheia secretă C.
+
+\subsection{Verificarea demonstrației - $Verify(A,x,\pi_x)$}
+
+
 
 
 \printbibliography
