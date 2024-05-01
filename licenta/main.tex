@@ -157,6 +157,33 @@ $path_C=[0,1,0]$ împreună cu preimaginea C sau o semnatură/demonsrație zk pe
 
 \subsection{Verificarea demonstrației - $Verify(A,x,\pi_x)$}
 
+Verificarea unei demonstrații Merkle presupune verificarea semnături și recalcularea rădăcinii arborelui folosind vectorii $siblings$ și $path$ și funcția publică hash.
+
+Dacă rădăcinia calculată este egală cu rădăcina arborelui Merkle atunci demonstrația este acceptată altfel este respinsă.
+
+Verifier-ul poate să evalueze o astfel de demonstrație într-un timp logaritmic și fără să salveze în memorie întreg arborele. Deși eficientă, acestă metodă de demonstrare nu păstrează datele private deoarece Verifier-ul află semnatura și poziția hash-ului cheii secrete în arbore.
+
+\section{Demonstrații de non-apartenență}
+Potrivit definiției de mai sus un arbore hash Merkle este un acumulator criptografic \emph{dinamic}, care suportă operațiile de inserare,actualizare și ștergere, însă în practică nu dorim să executăm operațiile de actualizare sau ștergere deoarece acestea pot duce la scurgeri de informații cu privire la nodurile care au fost actualizate.
+
+\subsection{Modelul UTXO}
+Pentru a elimina un nod dintr-un arbore Merkle acesta trebuie \emph{anulat} folosind un \emph{nullifier}. Un nullifier este un hash-commitment compus din cheia secretă a nodului si ID-ul arborelui Merkle din care face parte , prin care se indică faptul că nodul a fost "consumat".În cazul in care dorim să actualizăm valoarea unui nod , trebuie sa anulăm nodul vechi și sa inserăm un nod cu valoarea nouă. 
+
+Valoarea unui nullifier , de obicei un hash , nu trebuie să dezvăluie ce nod anulează din arborele hash și este de obicei salvată într-un alt arbore Merkle sparse numit \emph{"Nullifier tree"}. Acest model cu doi arbori hash se numește UTXO Model (eng. \emph{Unspent Transactions Outputs}) și este folosit de exemplu în gestionarea tranzacțiilor cu criptomonede. Modelul UTXO este util deoarece rezolvă o problemă de securitate în ceea ce privește demonstrațiile uzuale: replay attacks - folosirea repetată a aceleiași demonstrații.\cite{stanford_blockchain:2022}
+
+Pentru a demonstra apartenența unui element $x$ în modelul UTXO trebuie să demonstrăm că $POS(x)$ face parte din arborele hash și faptul ca nullifier-ul asociat cheii secrete nu se află in nullifier Tree. 
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{images/nullify.png}
+    \caption{Calculul unui nullifier pentru elementul cu cheia secretă "D"}
+    \label{fig:nullify_calc}
+\end{figure}
+
+\subsection{Verificarea în modelul UTXO }
+În general arborele nullifier este un arbore hash sparse 
+
+aici o sa scriu despre cum verificarea de non apartenenta in arborele de nullifier este constanta insa nu este rapida in contextul zero knowledge
 
 
 
