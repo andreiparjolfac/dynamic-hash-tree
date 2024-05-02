@@ -181,9 +181,47 @@ Pentru a demonstra apartenența unui element $x$ în modelul UTXO trebuie să de
 \end{figure}
 
 \subsection{Verificarea în modelul UTXO }
-În general arborele nullifier este un arbore hash sparse 
+Arborele nullifier \emph{nullTree} este un arbore hash sparse cu suficiente noduri frunză pentru a cuprinde toate valorile posibile pentru funcția hash folosită. În cazul nostru , funcția hash \emph{POSEIDON} generează valori în câmpul prim $Z_p$ , p fiind numărul de elemente (ordinul) câmpului generat de curba eliptică ALT\_BN128 \cite{eip196}. Numărul p se află între $2^{253}\leq p\leq 2^{254}$ , așa că avem nevoie de un arbore hash cu 254 de nivele pentru a putea acomoda toate valorile din domeniul funcției $POS$.
 
-aici o sa scriu despre cum verificarea de non apartenenta in arborele de nullifier este constanta insa nu este rapida in contextul zero knowledge
+Putem să folosim valorile hash / nullifier pe post de index în vectorul nodurilor frunză și să codificăm valorile 0 pentru nefolosit și 1 pentru folosit.
+
+Demonstrația de non-aparteneță pentru un anumit nullifier/valoare hash revine la o demonstrație de apartenența a elementului "0" la poziția nullifier-ului. În acest mod putem verifica în timp constant \emph{$O(1)$} dacă un nullifier a fost folosit sau nu. 
+
+Structura sparse a arborilor hash ne permite o verificare ușoară a non apartenenței iar demonstrația nu dezvăluie informații noi pentru Verifier deoarece funcția care leagă un nullifier de cheia pe care o anulează este o funcție hash criptografică.
+
+Demonstrația zero knowledge completă va trebui să conțină următoarele:
+\begin{itemize}
+    \item{demonstrația de apartenență în arborele hash pentru cheia secretă}
+    \item{demonstrația că nullifier-ul a fost calculat corect}
+    \item{demonstrația de non-apartenență în arborele nullTree pentru nullifier}
+\end{itemize}
+
+\subsection{Problemele arborilor hash sparse}
+
+Desi demonstrația de non-apartență este simplă și are un timp constant aceasta nu poate să fie folosită în mod eficient în SNARK-uri deoarece arborele are o adâncime foarte mare și necesită executarea funcției hash pentru fiecare nivel. Funcțiile hash reprezintă o operație foarte costisitoare în contextul circuitelor algebrice folosite în SNARK-uri și deși există funcții hash optimizate pentru acest mediu, expuse mai sus, faptul ca trebuie să apelăm funcția hash de 254-ori pentru a demonstra non-apartenența unui nullifier va duce la probleme de scalabilitate.
+
+
+\section{Arbori hash indexați}
+O soluție pentru această problemă de performanță este prezentată în \cite{cryptoeprint:2021/1263} unde se propune idea de \emph{arbore Merkle indexat}, un arbore care ne permite să facem demonstrații zero-knowledge de non-apartenență eficiente.
+
+Acest arbore este dens, are o adâncime substanțial mai mică și nodurile frunză reprezintă \emph{hash commitment}-urile nodurilor unui lanț circular simplu înlânțuit de hash-uri nullifier ordonate în ordine crescătoare.
+
+Structura nodului din lanț este compusă din: valoarea nullifier-ului $nlfr\in F_p$, valoarea nullifier-ului următor in ordine crescătoare $nlfr_{next}$ și index-ul următorului nullifier $i_{next}$.
+
+\centering
+
+$leafnode = \{nlfr, i_{next}, nlfr_{next}\}$
+
+\raggedright
+
+În arborele nullTree sunt introduse doar hash commitment-urile calculate folosind funcția POSEIDON , POS([$nlfr, i_{next}, nlfr_{next}$]).
+
+Regula de inserție pentru un nullifier nou este aceiași cu cea pentru un lanț simplu înlănțuit normal , în care schimbăm pointerii pentru a păstra ordinea crescătoare a valorilor hash. 
+
+aici mai detaliez un pic regula de insertie
+
+Cu această regulă de inserție, putem să demonstrăm foarte simplu că un nullifier face sau nu parte din arbore.
+
 
 
 
