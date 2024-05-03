@@ -5,6 +5,10 @@ backend=biber,
 style=alphabetic,
 sorting=ynt
 ]{biblatex}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\usepackage{caption}
+\usepackage{subcaption}
 \addbibresource{bibliografie.bib}
 \graphicspath{{images/}}
 \title{Demonstrații zero-knowledge de apartenență la mulțimi}
@@ -218,12 +222,81 @@ $leafnode = \{nlfr, i_{next}, nlfr_{next}\}$
 
 Regula de inserție pentru un nullifier nou este aceiași cu cea pentru un lanț simplu înlănțuit normal , în care schimbăm pointerii pentru a păstra ordinea crescătoare a valorilor hash. 
 
-aici mai detaliez un pic regula de insertie
+Această regulă de inserție și structura ordonată a lanțului generează o propeitate importnată pe care o vom folosi mai departe : dacă un nod de forma $leafnode = \{nlfr, i_{next}, nlfr_{next}\}$ face parte din lanț atunci nu există niciun nullifier care a fost deja folosit în intervalul $(nlfr,nlfr_{next})$ .
+Cu această proprietate putem să demonstrăm foarte simplu dacă un nullifier face sau nu parte dintr-un arbore indexat.
 
-Cu această regulă de inserție, putem să demonstrăm foarte simplu că un nullifier face sau nu parte din arbore.
+\subsection{Construcția arborelui și algoritmul de inserție}
 
+Construcția arborelui indexat presupune un nivel adițional folosind un vector, în care vom păstra lanțul simplu înlănțuit compus din obiecte cu 3 proprietăți: valoarea hash-ului ,index-ului hash-ului următor și valoarea hash-ului următor.
 
+Inițial arborele conține valorile $HASH\_MIN=0\ și\ HASH\_MAX=p-1$ (unde p-1 este valoarea "maximă" din câmpul $F_p$) și lanțul este compus din $LINKED\_LIST=[\{0,1,p-1\},\{p-1,0,0\}]$ . Riscul de coliziune cu un alt nullifier este neglijabil iar aceste 2 margini, inferioare și superioare, ne reduc câteva cazuri speciale din algoritmul de inserție. 
 
+Algoritmul implică căutarea unui nod cu valoarea hash-ului mai mică decât hash-ul inserat $nlfr < new\_hash$ și valoarea hash-ului următor mai mare decât hash-ul inserat $new\_hash < nlfr_{next}$.
 
+\begin{algorithm}
+    \caption{Algoritm pentru inserarea hash-urilor într-un arborele indexat}
+    \label{index_tree_hash_insert_alg}
+    \begin{algorithmic}[1]
+        \Function{insertHashValue}{$nullTree,hashValue$}
+            \State $current\_node \gets nullTree.LinkedList[0]$
+            \State $next\_index \gets current\_node.next\_index$ 
+            \While{$next\_index\not=0$}\Comment{cât timp nu am parcurs toată lista}
+                \State $current\_hash \gets current\_node.hash\_value$
+                \State $next\_hash \gets current\_node.next\_hash\_value$
+                \If { ($current\_hash<hashValue)\ \&\&\ (hashValue<next\_hash$) } 
+                  \State \textbf{break}
+                \Else 
+                \State $current\_node\gets nullTree.LinkedList[next\_index]$
+                \State $next\_index \gets current\_node.next\_index$ 
+                \EndIf
+            \EndWhile
+            \If {$next\_index=0$}
+                \State \textbf{throw new Error("Hash already inserted!")}
+            \Else 
+                \State $new\_node = new\ LeafNode()$
+                \State $new\_node.hash\_value\gets hashValue$
+                \State $new\_node.next\_index\gets next\_index$
+                \State $new\_node.next\_hash\_value\gets current\_node.next\_hash\_value$
+                \State $nullTree.LinkedList.push(new\_node)$
+                \State $current\_node.next\_index\gets nullTree.LinkedList.length-1$
+                \State $current\_node.next\_hash\_value\gets new\_node.hash\_value$      
+            \EndIf
+        \EndFunction
+    \end{algorithmic}
+\end{algorithm}
+
+Algoritmul inserează valoarea $hashValue$ în arborele indexat $nullTree$ dacă aceasta nu există în arbore altfel aruncă o eroare deoarece hash-ul a fost deja inserat.
+
+În exemplul următor este prezentat un arbore indexat de adâncime 3 (8 noduri frunză) în care inserăm în ordine valorile hash $\in F_p$ : $10,20,15,5$. Fiecare schimbare este evidențiată cu culoarea verde-deschis.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=1\textwidth]{images/nullTreeInsert/nullTreeInsertInitial.png}
+    \label{fig:nullTreeInsertInitial}
+\end{figure}
+
+\begin{figure}[ht]
+    \includegraphics[width=1\textwidth]{images/nullTreeInsert/nullTreeInsert10.png}
+    \label{fig:nullTreeInsert10}
+\end{figure}
+
+\begin{figure}[ht]
+    \includegraphics[width=1\textwidth]{images/nullTreeInsert/nullTreeInsert20.png}
+    \label{fig:nullTreeInsert20}
+\end{figure}
+
+\begin{figure}[ht]
+    \includegraphics[width=1\textwidth]{images/nullTreeInsert/nullTreeInsert15.png}
+    \label{fig:nullTreeInsert15}
+\end{figure}
+
+\begin{figure}[ht]
+    \includegraphics[width=1\textwidth]{images/nullTreeInsert/nullTreeInsert5.png}
+    \label{fig:nullTreeInsert5}
+\end{figure}
+
+\newpage
+
+După ce a fost inserat un nod nou trebuie să recalculăm hash commitment-ul atât pentru nodul nou cât și pentru nodul actualizat, adică cele două noduri colorate cu verde din exemplul precedent și apoi să recalculăm rădăcina arborelui indexat.
 \printbibliography
 \end{document}
