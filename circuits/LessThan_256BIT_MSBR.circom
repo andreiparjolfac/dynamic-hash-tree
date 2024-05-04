@@ -37,13 +37,17 @@ template LessThan_256BIT_MSBR(){
     signal interBINcomp1[4];
     signal interBINcomp2[4];
     component interLT[4];
+    component isEq[4];
 
     for(var i=0;i<4;i++){
         interLT[i] = LessThan();
+        isEq[i] = isEqual();
         interLT[i].in[0]<==inter2[i];
         interLT[i].in[1]<==inter1[i];
+        isEq[i].in[0]<==inter2[i];
+        isEq[i].in[1]<==inter1[i];
         interBINcomp1[i]<== interLT[i].out;
-        interBINcomp2[i]<== (1-interLT[i].out);
+        interBINcomp2[i]<== (1-interLT[i].out)-isEq[i].out;
     }
 
     signal num[2];
