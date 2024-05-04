@@ -3,7 +3,7 @@ pragma circom 2.1.6;
 include "./Num2Bits.circom";
 include "./Bits2Num.circom";
 include "./LessThan.circom";
-
+include "./isEqual.circom";
 
 template LessThan_256BIT_MSBR(){
     signal input in[2];
