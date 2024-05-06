@@ -90,7 +90,7 @@ template MainProof(depth){
     
 }
 
-component main {public [root,nullifierRoot,nodeTreeID,nullifierTreeID]}  = MainProof(16);
+component main {public [root,nullifierRoot,nodeTreeID,nullifierTreeID,nullifierHash]}  = MainProof(16);
 
 /* INPUT = {
   "sk": "1149711511298101114114105101115",
