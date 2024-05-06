@@ -1,14 +1,14 @@
 1.) Compile the circuits
 
 PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> circom MainProof.circom --wasm --r1cs --sym -o ./build
-template instances: 218
-non-linear constraints: 13167
+template instances: 220
+non-linear constraints: 13183
 linear constraints: 0
-public inputs: 4
-private inputs: 70
-public outputs: 0
-wires: 12152
-labels: 32217
+public inputs: 5     
+private inputs: 69   
+public outputs: 0    
+wires: 12168
+labels: 32265
 Written successfully: ./build\MainProof.r1cs
 Written successfully: ./build\MainProof.sym
 Written successfully: ./build\MainProof_js\MainProof.wasm
@@ -18,12 +18,12 @@ Everything went okay
 
 PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> snarkjs r1cs info build/MainProof.r1cs
 [INFO]  snarkJS: Curve: bn-128
-[INFO]  snarkJS: # of Wires: 12152      
-[INFO]  snarkJS: # of Constraints: 13167
-[INFO]  snarkJS: # of Private Inputs: 70
-[INFO]  snarkJS: # of Public Inputs: 4  
-[INFO]  snarkJS: # of Labels: 32217     
-[INFO]  snarkJS: # of Outputs: 0    
+[INFO]  snarkJS: # of Wires: 12168
+[INFO]  snarkJS: # of Constraints: 13183
+[INFO]  snarkJS: # of Private Inputs: 69
+[INFO]  snarkJS: # of Public Inputs: 5
+[INFO]  snarkJS: # of Labels: 32265
+[INFO]  snarkJS: # of Outputs: 0
 
 3.) Download powersOfTau file for the trusted setup according to the number of constraints
 from :
@@ -34,7 +34,7 @@ place it in the ptau folder
 
 PS C:\Users\Andrei\Desktop\dynamic-hash-tree-main\circuits> snarkjs plonk setup build/MainProof.r1cs ptau/powersOfTau28_hez_final_17.ptau keys/MainProof_PK.zkey
 [INFO]  snarkJS: Reading r1cs
-[INFO]  snarkJS: Plonk constraints: 100578
+[INFO]  snarkJS: Plonk constraints: 100667
 [INFO]  snarkJS: Setup Finished
 
 5.) Generate the Verification key using the Proving key

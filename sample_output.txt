@@ -64,7 +64,7 @@ Verified Proof of non-membership generated for nullifier Tree : true
   nullifierTreeID: 199
 }
 Starting ZK Proof Generation
-Proof and public signals generated in 89769 mseconds
+Proof and public signals generated in 92866 mseconds
 Proof result: 
 true
-Proof time for 2**16 depth node tree and nullifier tree : 16 mseconds
+Proof time for 2**16 depth node tree and nullifier tree : 17 mseconds

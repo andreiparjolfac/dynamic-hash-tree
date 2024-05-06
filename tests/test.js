@@ -8,6 +8,24 @@ import { generateNullifierTreeProofForHash } from "../src/generateNullifierTreeP
 import * as snarkjs from "snarkjs";
 import fs from "fs";
 
+const  zk_prove = async(inputs) =>{
+
+    console.log(inputs);
+    console.log("Starting ZK Proof Generation");
+    var start = new Date().getTime();
+    const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,"../circuits/build/MainProof_js/MainProof.wasm","../circuits/keys/MainProof_PK.zkey");
+    var time_now = new Date().getTime();
+    console.log(`Proof and public signals generated in ${time_now-start} mseconds`);
+    const vKey = JSON.parse(fs.readFileSync("../circuits/keys/MainProof_VK.json"));
+
+    const res = await snarkjs.plonk.verify(vKey,publicSignals,proof);
+    console.log("Proof result: ");
+    console.log(res);
+    var end = new Date().getTime();
+    console.log(`Proof time for 2**16 depth node tree and nullifier tree : ${end-time_now} mseconds`);
+
+
+}
 
 
 const main = async() => {
@@ -41,7 +59,7 @@ const main = async() => {
     console.log(`Verified Proof of non-membership generated for nullifier Tree : ${verifyProof(nullifierTreeRawProof)}`);
 
     //prepare zk-proof input for the compiled circuit
-    const inputs = {
+    var inputs = {
         sk:getCharCodes("raspberries"),
         siblingsPk:rawProof.siblings.flat(),
         path:rawProof.path,
@@ -55,31 +73,39 @@ const main = async() => {
         nullifierTreeSiblingsPk : nullifierTreeRawProof.siblings.flat(),
         nullifierTreePath : nullifierTreeRawProof.path,
          
-        //public inpus/signals
+   
         root:htree.getRoot(),
         nullifierRoot:nullTree.getRoot(),
         nodeTreeID:htree.getTreeID(),
         nullifierTreeID:nullTree.getTreeID()
     };
-    console.log(inputs);
-    console.log("Starting ZK Proof Generation");
-    var start = new Date().getTime();
-    const { proof, publicSignals } = await snarkjs.plonk.fullProve(inputs,"../circuits/build/MainProof_js/MainProof.wasm","../circuits/keys/MainProof_PK.zkey");
-    var time_now = new Date().getTime();
-    console.log(`Proof and public signals generated in ${time_now-start} mseconds`);
-    const vKey = JSON.parse(fs.readFileSync("../circuits/keys/MainProof_VK.json"));
-
-    const res = await snarkjs.plonk.verify(vKey,publicSignals,proof);
-    console.log("Proof result: ");
-    console.log(res);
-    var end = new Date().getTime();
-    console.log(`Proof time for 2**16 depth node tree and nullifier tree : ${end-time_now} mseconds`);
+    await zk_prove(inputs);
 
     //insert the nullifier to prevent a replay attack
-    if(res){
-        nullTree.insertHashValue(nullifier);
-    }
-    
+
+    nullTree.insertHashValue(nullifier);
+    //replay attack , this should error out
+    var inputs = {
+        sk:getCharCodes("raspberries"),
+        siblingsPk:rawProof.siblings.flat(),
+        path:rawProof.path,
+
+        nullifierHash : nullifier,
+
+        lowLeafHashValue:nullifierTreeRawProof.leafHashValue,
+        lowHash : nullifierTreeRawProof.nullifierLeaf.hashValue,
+        highHash : nullifierTreeRawProof.nullifierLeaf.nextHashValue,
+        nextIndex : nullifierTreeRawProof.nullifierLeaf.nextIndex,
+        nullifierTreeSiblingsPk : nullifierTreeRawProof.siblings.flat(),
+        nullifierTreePath : nullifierTreeRawProof.path,
+         
+   
+        root:htree.getRoot(),
+        nullifierRoot:nullTree.getRoot(),
+        nodeTreeID:htree.getTreeID(),
+        nullifierTreeID:nullTree.getTreeID()
+    };
+    await zk_prove(inputs);
 }
 
 main().then(()=>{
