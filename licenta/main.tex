@@ -538,7 +538,8 @@ template HashTreeLevel(){
 
 }
 \end{lstlisting}
-\textbf{HashTreeLevel} este folosit pentru a calcula următorul nivel dintr-un arbore Merkle dat. Circuitul primește tralala aici zic ce primește circuitul
+\textbf{HashTreeLevel} este folosit pentru a calcula următorul nivel dintr-un arbore Merkle dat. Circuitul primește hash-ul din nivelul anterior împreună cu hash-ul sibling din nivelul curent și ordinea în care apar în apelul funcției hash POSEIDON. Acest ciruit este folosit exclusiv în demonstrațiile de apartenență în arbori hash simpli, în timp ce demonstrațile de apartență în arbori indexați au o structură similară dar necesită mai multe verificări și constrângeri și sunt tratate direct în circuitul principal.
+\pagebreak
 
 \subsection{Circuitul principal}
 \begin{lstlisting}[caption="MainProof.circom"]
@@ -623,5 +624,34 @@ template MainProof(depth){
 component main {public [root,nullifierRoot,nodeTreeID,nullifierTreeID,
 nullifierHash]}  = MainProof(16);
 \end{lstlisting}
+
+Circuitul principal folosește toate circuitele descrise mai sus. Acesta este responsabil pentru constragerile a cinci demonstrații:
+\begin{enumerate}
+    \item{\textbf{demonstrația de apartenență la arborele hash} - această parte folosește semnalele de intrare \textbf{sk}, \textbf{siblingsPk[depth]}, \textbf{ path[depth]} și \textbf{root}   și calculează pornind de la cheia secretă \textbf{sk} fiecare nivel folosind circuitul \emph{HashTreeLevel}. La sfârșit verificăm că ultimul hash obținut este egal cu rădăcina arborelui.Semanele \textbf{sk}, \textbf{path[depth]} și \textbf{siblingsPk[depth]} sunt private deoarece oricare din ele dezvăluie informații Verifier-ului despre nodul țintă al demonstrației. Semnalul \textbf{root} este public deoarece hash-ul rădăcinii și hash-urile nodurilor frunză sunt publice prin definiție.}
+    
+    \item{\textbf{calculul corect al nullifier-ului} - nullifier-ul este un \emph{hash commitment} între cheia secretă \textbf{sk}(semnal privat), ID-ul arborelui hash \textbf{nodeTreeID}(semnal public) și ID-ul arborelui indexat de nullifieri \textbf{nullifierTreeID}(semnal public) calculat folosind funcția POSEIDON astfel :
+    
+    $nullifierHash=POSEIDON([sk,nodeTreeID,nullifierTreeID])$
+    Circuitul principal se asigură astfel că semnalul public \textbf{nullifierHash} este calculat corect. Hash-ul nullifier-ului poate să fie public deoarece acesta nu poate să fie asociat cu niciun elemnent din mulțimea de elemente atunci când funcția hash folosită este criptografică.}
+    
+    \item{\textbf{demonstrația că hash-ul nullifier-ului se află în intervalul $(lowHash,highHash)$}. Folosind circuitul \emph{LessThan 256BIT MSBR} ne asigurăm că nullifier-ul se află între semnalele private \textbf{lowHash} și \textbf{highHash}.}
+\pagebreak
+    \item{\textbf{calculul corect al nodului frunză din arborele nullifier-ilor} - fiecare nod frunză din arborele indexat al nullifier-ilor este un \emph{hash commitment} al fiecărui nod din lanțul ordonat de forma $\{lowHash,nextIndex,highHash\}$(toate semnalele private) , notat în circuit cu semnalul privat \textbf{lowLeafHashValue}. Ne asigurăm astfel că valorile \textbf{lowHash} și \textbf{highHash} sunt valide și se respectă ordinea din lanț.}
+
+    \item{\textbf{demonstrația de apartenență la arborele hash} - se demonstrează că valoarea \emph{hash commitment-ului} \textbf{lowLeafHashValue} face parte din arborele indexat și deci valorea nullifier-ului nu a fost introdusă încă în arbore.}
+
+În total după compilarea circuitului pentru o adâncime de 16 nivele, obținem un R1CS cu următoarele proprietăți :
+
+\begin{lstlisting}
+snarkjs r1cs info build/MainProof.r1cs
+[INFO]  snarkJS: Curve: bn-128
+[INFO]  snarkJS: # of Wires: 12168
+[INFO]  snarkJS: # of Constraints: 13183
+[INFO]  snarkJS: # of Private Inputs: 69
+[INFO]  snarkJS: # of Public Inputs: 5
+[INFO]  snarkJS: # of Labels: 32265
+[INFO]  snarkJS: # of Outputs: 0
+\end{lstlisting}
+\end{enumerate}
 \printbibliography
 \end{document}
