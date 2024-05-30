@@ -39,7 +39,6 @@ const main = async()=>{
 
     const hashed_words_alpha = [];
 
-    console.log(words_alpha[260906].charCodeAt(11));
     console.log("Hashing all the words")
     for(let i=0;i<words_alpha.length;i++){
         if(i%10000==0)
