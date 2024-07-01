@@ -98,7 +98,7 @@ const main = async()=>{
     if(res == true){
         nullTree.insertHashValue(nullifier);
     }
-    //replay attack , this should error out
+
     index = 260907;
     const secret_key_2 = "raspberries";
     const rawProof_2 = generateProofForIndex(hashTree,index);
