@@ -7,7 +7,7 @@ import { generateProofForHash,generateProofForIndex } from "../src/generateProof
 import { verifyProof } from "../src/verifyProof.mjs";
 import { generateNullifier,checkNullifier } from "../src/NullifierProof.mjs";
 import { generateNullifierTreeProofForHash } from "../src/generateNullifierTreeProof.mjs";
-
+// update the words file and the main circuits and recompile them . add index as a hash commitment to the nullifier check in both JS and circom
 
 const  zk_prove = async(inputs) =>{
 
